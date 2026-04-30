@@ -197,6 +197,42 @@ components:
           type: string
         evidence:
           type: string
+        owasp:
+          type: array
+          description: OWASP Top 10 2021 categories this finding maps to
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                description: e.g. "A05"
+              name:
+                type: string
+                description: e.g. "Security Misconfiguration"
+            required: [code, name]
+        plainEnglish:
+          type: string
+          description: 1-2 sentence non-technical explanation of the risk
+        howToFix:
+          type: string
+          description: Specific remediation steps including exact header syntax where applicable
+        fix:
+          type: object
+          description: Structured remediation reference for IT handoff
+          properties:
+            change:
+              type: string
+              description: The exact header or config change needed
+            example:
+              type: string
+              description: A correct example value
+            difficulty:
+              type: string
+              enum: [Low, Medium, High]
+            owner:
+              type: string
+              enum: [Developer, Server Admin, IT Infrastructure]
+          required: [change, example, difficulty, owner]
       required: [id, title, severity, category, description]
 
     ScanResult:

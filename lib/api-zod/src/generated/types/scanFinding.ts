@@ -5,6 +5,8 @@
  * Cybersecurity Lab Dashboard API
  * OpenAPI spec version: 0.1.0
  */
+import type { ScanFindingFix } from "./scanFindingFix";
+import type { ScanFindingOwaspItem } from "./scanFindingOwaspItem";
 import type { Severity } from "./severity";
 
 export interface ScanFinding {
@@ -14,4 +16,12 @@ export interface ScanFinding {
   category: string;
   description: string;
   evidence?: string;
+  /** OWASP Top 10 2021 categories this finding maps to */
+  owasp?: ScanFindingOwaspItem[];
+  /** 1-2 sentence non-technical explanation of the risk */
+  plainEnglish?: string;
+  /** Specific remediation steps including exact header syntax where applicable */
+  howToFix?: string;
+  /** Structured remediation reference for IT handoff */
+  fix?: ScanFindingFix;
 }

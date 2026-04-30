@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { RunScanBody, RunScanResponse } from "@workspace/api-zod";
 import { recordScan } from "../lib/activity";
+import { enrichFinding } from "../lib/owasp";
 
 const router: IRouter = Router();
 
@@ -15,6 +16,20 @@ type Finding = {
   description: string;
   evidence?: string;
 };
+
+function decorateFindings(findings: Finding[]): unknown[] {
+  return findings.map((f) => {
+    const e = enrichFinding(f.id);
+    if (!e) return f;
+    return {
+      ...f,
+      owasp: e.owasp,
+      plainEnglish: e.plainEnglish,
+      howToFix: e.howToFix,
+      fix: e.fix,
+    };
+  });
+}
 
 async function fetchWithTimeout(
   url: string,
@@ -299,20 +314,21 @@ router.post("/scan", async (req, res): Promise<void> => {
     response = await fetchWithTimeout(url.toString(), { method: "GET" });
   } catch (err) {
     req.log.warn({ err: String(err) }, "Scan target unreachable");
+    const unreachable: Finding[] = [
+      {
+        id: "unreachable",
+        title: "Target unreachable",
+        severity: "info",
+        category: "transport",
+        description: `Could not establish a connection: ${String(err)}`,
+      },
+    ];
     res.status(200).json(
       RunScanResponse.parse({
         target: url.toString(),
         scannedAt: new Date().toISOString(),
         durationMs: Date.now() - startedAt,
-        findings: [
-          {
-            id: "unreachable",
-            title: "Target unreachable",
-            severity: "info",
-            category: "transport",
-            description: `Could not establish a connection: ${String(err)}`,
-          },
-        ],
+        findings: decorateFindings(unreachable),
         summary: { critical: 0, high: 0, medium: 0, low: 0, info: 1 },
       }),
     );
@@ -437,7 +453,7 @@ router.post("/scan", async (req, res): Promise<void> => {
     statusCode: response.status,
     durationMs: Date.now() - startedAt,
     headers,
-    findings,
+    findings: decorateFindings(findings),
     summary,
   };
 

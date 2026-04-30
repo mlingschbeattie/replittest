@@ -36,6 +36,36 @@ export const RunScanResponse = zod.object({
       category: zod.string(),
       description: zod.string(),
       evidence: zod.string().optional(),
+      owasp: zod
+        .array(
+          zod.object({
+            code: zod.string().describe('e.g. \"A05\"'),
+            name: zod.string().describe('e.g. \"Security Misconfiguration\"'),
+          }),
+        )
+        .optional()
+        .describe("OWASP Top 10 2021 categories this finding maps to"),
+      plainEnglish: zod
+        .string()
+        .optional()
+        .describe("1-2 sentence non-technical explanation of the risk"),
+      howToFix: zod
+        .string()
+        .optional()
+        .describe(
+          "Specific remediation steps including exact header syntax where applicable",
+        ),
+      fix: zod
+        .object({
+          change: zod
+            .string()
+            .describe("The exact header or config change needed"),
+          example: zod.string().describe("A correct example value"),
+          difficulty: zod.enum(["Low", "Medium", "High"]),
+          owner: zod.enum(["Developer", "Server Admin", "IT Infrastructure"]),
+        })
+        .optional()
+        .describe("Structured remediation reference for IT handoff"),
     }),
   ),
   summary: zod.object({

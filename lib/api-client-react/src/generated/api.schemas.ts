@@ -29,6 +29,43 @@ export interface ScanRequest {
   url: string;
 }
 
+export type ScanFindingOwaspItem = {
+  /** e.g. "A05" */
+  code: string;
+  /** e.g. "Security Misconfiguration" */
+  name: string;
+};
+
+export type ScanFindingFixDifficulty =
+  (typeof ScanFindingFixDifficulty)[keyof typeof ScanFindingFixDifficulty];
+
+export const ScanFindingFixDifficulty = {
+  Low: "Low",
+  Medium: "Medium",
+  High: "High",
+} as const;
+
+export type ScanFindingFixOwner =
+  (typeof ScanFindingFixOwner)[keyof typeof ScanFindingFixOwner];
+
+export const ScanFindingFixOwner = {
+  Developer: "Developer",
+  Server_Admin: "Server Admin",
+  IT_Infrastructure: "IT Infrastructure",
+} as const;
+
+/**
+ * Structured remediation reference for IT handoff
+ */
+export type ScanFindingFix = {
+  /** The exact header or config change needed */
+  change: string;
+  /** A correct example value */
+  example: string;
+  difficulty: ScanFindingFixDifficulty;
+  owner: ScanFindingFixOwner;
+};
+
 export interface ScanFinding {
   id: string;
   title: string;
@@ -36,6 +73,14 @@ export interface ScanFinding {
   category: string;
   description: string;
   evidence?: string;
+  /** OWASP Top 10 2021 categories this finding maps to */
+  owasp?: ScanFindingOwaspItem[];
+  /** 1-2 sentence non-technical explanation of the risk */
+  plainEnglish?: string;
+  /** Specific remediation steps including exact header syntax where applicable */
+  howToFix?: string;
+  /** Structured remediation reference for IT handoff */
+  fix?: ScanFindingFix;
 }
 
 export type ScanResultHeaders = { [key: string]: string };
