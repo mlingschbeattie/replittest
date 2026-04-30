@@ -3,20 +3,25 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Cybersecurity Lab Dashboard API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: scanner
+    description: Passive vulnerability scanner
+  - name: cve
+    description: CVE lookup via NVD
+  - name: hash
+    description: Hash breach lookup
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +29,128 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /scan:
+    post:
+      operationId: runScan
+      tags: [scanner]
+      summary: Run passive vulnerability scan against a target URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScanRequest"
+      responses:
+        "200":
+          description: Scan results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScanResult"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cve/search:
+    get:
+      operationId: searchCves
+      tags: [cve]
+      summary: Search NVD CVE database by keyword
+      parameters:
+        - name: keyword
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CveSearchResult"
+        "502":
+          description: Upstream NVD error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cve/{id}:
+    get:
+      operationId: getCveById
+      tags: [cve]
+      summary: Get a single CVE by its ID (e.g. CVE-2021-44228)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CVE details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CveItem"
+        "404":
+          description: CVE not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /hash/check:
+    post:
+      operationId: checkHash
+      tags: [hash]
+      summary: Identify a hash and check if it appears in known breach data (HIBP k-anonymity)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HashCheckRequest"
+      responses:
+        "200":
+          description: Hash analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HashCheckResult"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /stats:
+    get:
+      operationId: getStats
+      tags: [health]
+      summary: Dashboard statistics across recent activity
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +161,193 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        detail:
+          type: string
+      required: [error]
+
+    Severity:
+      type: string
+      enum: [critical, high, medium, low, info]
+
+    ScanRequest:
+      type: object
+      properties:
+        url:
+          type: string
+          description: Target URL (must be http or https)
+      required: [url]
+
+    ScanFinding:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        severity:
+          $ref: "#/components/schemas/Severity"
+        category:
+          type: string
+        description:
+          type: string
+        evidence:
+          type: string
+      required: [id, title, severity, category, description]
+
+    ScanResult:
+      type: object
+      properties:
+        target:
+          type: string
+        scannedAt:
+          type: string
+        finalUrl:
+          type: string
+        statusCode:
+          type: integer
+        durationMs:
+          type: integer
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+        findings:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScanFinding"
+        summary:
+          type: object
+          properties:
+            critical:
+              type: integer
+            high:
+              type: integer
+            medium:
+              type: integer
+            low:
+              type: integer
+            info:
+              type: integer
+          required: [critical, high, medium, low, info]
+      required: [target, scannedAt, findings, summary]
+
+    CveItem:
+      type: object
+      properties:
+        id:
+          type: string
+        published:
+          type: string
+        lastModified:
+          type: string
+        description:
+          type: string
+        cvssScore:
+          type: number
+          nullable: true
+        cvssSeverity:
+          type: string
+          nullable: true
+        cvssVector:
+          type: string
+          nullable: true
+        cweIds:
+          type: array
+          items:
+            type: string
+        affectedProducts:
+          type: array
+          items:
+            type: string
+        references:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+              source:
+                type: string
+                nullable: true
+            required: [url]
+        patchAvailable:
+          type: boolean
+      required: [id, description, cweIds, affectedProducts, references, patchAvailable]
+
+    CveSearchResult:
+      type: object
+      properties:
+        keyword:
+          type: string
+        totalResults:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CveItem"
+      required: [keyword, totalResults, items]
+
+    HashCheckRequest:
+      type: object
+      properties:
+        hash:
+          type: string
+      required: [hash]
+
+    HashCheckResult:
+      type: object
+      properties:
+        hash:
+          type: string
+        identifiedTypes:
+          type: array
+          items:
+            type: string
+        primaryType:
+          type: string
+          nullable: true
+        length:
+          type: integer
+        pwnedCount:
+          type: integer
+          nullable: true
+          description: Number of times this hash appears in HIBP breach data (SHA-1 only). Null if hash type is not SHA-1.
+        pwnedChecked:
+          type: boolean
+        notes:
+          type: string
+          nullable: true
+      required: [hash, identifiedTypes, length, pwnedChecked]
+
+    DashboardStats:
+      type: object
+      properties:
+        scansRun:
+          type: integer
+        cveLookups:
+          type: integer
+        hashChecks:
+          type: integer
+        criticalFindings:
+          type: integer
+        recentActivity:
+          type: array
+          items:
+            type: object
+            properties:
+              kind:
+                type: string
+              label:
+                type: string
+              at:
+                type: string
+              severity:
+                type: string
+                nullable: true
+            required: [kind, label, at]
+      required: [scansRun, cveLookups, hashChecks, criticalFindings, recentActivity]

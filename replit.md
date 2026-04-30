@@ -25,3 +25,15 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - `pnpm --filter @workspace/api-server run dev` — run API server locally
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+
+## Artifacts
+
+- **api-server** (`artifacts/api-server`) — Express 5 API. Routes: `/api/healthz`, `/api/scan`, `/api/cve/search`, `/api/cve/:id`, `/api/hash/check`, `/api/stats`. In-memory activity tracker. Optional env: `NVD_API_KEY`.
+- **soc-dashboard** (`artifacts/soc-dashboard`, slug `/`) — "Sentinel // Lab" SOC-style React+Vite dashboard. Five tools: Vulnerability Scanner (passive HTTP), Packet Visualizer (tcpdump/Wireshark parsing), Log Analyzer (CSV export), CVE Lookup (NVD), Hash Identifier (HIBP k-anonymity for SHA-1). Dark theme, JetBrains Mono, no emojis.
+- **mockup-sandbox** — design canvas (not used by SOC dashboard).
+
+## Backend Notes
+
+- Scanner blocks private/loopback IPs to prevent SSRF.
+- HIBP check only runs against SHA-1 input; uses k-anonymity (5-char prefix).
+- CVE proxy uses NVD 2.0; if `NVD_API_KEY` is set, sends `apiKey` header for higher rate limits.
