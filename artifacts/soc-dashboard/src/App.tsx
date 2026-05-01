@@ -11,6 +11,8 @@ import Packets from "@/pages/packets";
 import Logs from "@/pages/logs";
 import Cve from "@/pages/cve";
 import Hash from "@/pages/hash";
+import Encode from "@/pages/encode";
+import Password from "@/pages/password";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +26,8 @@ function Router() {
         <Route path="/logs" component={Logs} />
         <Route path="/cve" component={Cve} />
         <Route path="/hash" component={Hash} />
+        <Route path="/encode" component={Encode} />
+        <Route path="/password" component={Password} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

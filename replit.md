@@ -29,7 +29,7 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
 ## Artifacts
 
 - **api-server** (`artifacts/api-server`) — Express 5 API. Routes: `/api/healthz`, `/api/scan`, `/api/cve/search`, `/api/cve/:id`, `/api/hash/check`, `/api/stats`. In-memory activity tracker. Optional env: `NVD_API_KEY`.
-- **soc-dashboard** (`artifacts/soc-dashboard`, slug `/`) — "Sentinel // Lab" SOC-style React+Vite dashboard. Five tools: Vulnerability Scanner (passive HTTP), Packet Visualizer (tcpdump/Wireshark parsing), Log Analyzer (CSV export), CVE Lookup (NVD), Hash Identifier (HIBP k-anonymity for SHA-1). Dark theme, JetBrains Mono, no emojis.
+- **soc-dashboard** (`artifacts/soc-dashboard`, slug `/`) — "Sentinel // Lab" SOC-style React+Vite dashboard. Seven tools: Vulnerability Scanner (passive HTTP), Packet Visualizer (tcpdump/Wireshark parsing + DPI panel + SVG Network Topology), Log Analyzer (MITRE ATT&CK mapping, XSS/SQLi/path-traversal/cmd-injection detection, recharts timeline, CSV export), CVE Lookup (NVD), Hash Identifier (HIBP k-anonymity for SHA-1), Payload Encoder/Decoder (Base64/URL/Hex/HTML/Binary/ROT13/JWT + auto-detect), Password Analyzer (entropy, crack-time, HIBP SHA-1 check, pattern detection). Dark theme, JetBrains Mono, no emojis. All analysis is client-side except CVE/hash/stats which hit the API.
 - **mockup-sandbox** — design canvas (not used by SOC dashboard).
 
 ## Backend Notes

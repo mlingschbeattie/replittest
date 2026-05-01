@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useHealthCheck, getHealthCheckQueryKey } from "@workspace/api-client-react";
-import { Activity, ShieldAlert, FileText, Search, Hash, LayoutDashboard, Terminal } from "lucide-react";
+import { Activity, ShieldAlert, FileText, Search, Hash, LayoutDashboard, Terminal, Code2, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const NAV_ITEMS = [
@@ -10,6 +10,8 @@ const NAV_ITEMS = [
   { href: "/logs", label: "Log Analyzer", icon: FileText },
   { href: "/cve", label: "CVE Lookup", icon: Search },
   { href: "/hash", label: "Hash Identifier", icon: Hash },
+  { href: "/encode", label: "Payload Encoder", icon: Code2 },
+  { href: "/password", label: "Password Analyzer", icon: Lock },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
